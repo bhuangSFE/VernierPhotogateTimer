@@ -3,6 +3,9 @@
   Written by:  Brian Huang
   Date:  05.06.13
   Sparkfun Electronics
+  Revision: 10.02.16 -- added a second gate2Pin on pin D11. This works with the Mode 2 feature
+  and allows two gates to be connected to the LCD. Gate1 will start the timer and Gate2 will stop
+  the timer.
 
  Code based on: http://danthompsonsblog.blogspot.com/2008/11/timecode-based-stopwatch.html
  Coded by: arduinoprojects101.com
@@ -23,11 +26,13 @@ Future work to be done:
 
 int ledPin = 13;                    // LED connected to digital pin 13
 int gatePin = 10;                   // gate on pin 10
+int gate2Pin = 11;                  // gate on pin 11
 int buttonPin = 12;                 // mode button
 
 int LEDstate = LOW;                    // previous value of the LED
 
 int gateState;                      // variable to store gate state
+int gate2State;                      // variable to store gate state
 int lastgateState;                  // variable to store last gate state
 
 int buttonState;                    // variable to store button state
@@ -108,9 +113,11 @@ void setup()
 {
 
   pinMode(ledPin, OUTPUT);         // sets the digital pin as output
-  pinMode(gatePin, INPUT_PULLUP);    // sets up pin with an INTERNAL PULL_UP so that it defaults to HIGH
-  pinMode(buttonPin, INPUT_PULLUP);  // sets up pin with an INTERNAL PULL_UP so that it defaults to HIGH     
-
+  pinMode(gatePin, INPUT);       // not really necessary, pins default to INPUT anyway
+  pinMode(gate2Pin, INPUT);       // not really necessary, pins default to INPUT anyway
+  pinMode(buttonPin, INPUT_PULLUP);       // not really necessary, pins default to INPUT anyway
+  digitalWrite(gatePin, HIGH);   // turn on pullup resistors. Wire button so that press shorts pin to ground.
+  digitalWrite(gate2Pin, HIGH);   // turn on pullup resistors. Wire button so that press shorts pin to ground.
   Serial.begin(9600);
   rows = 2;
   columns = 16;
@@ -135,6 +142,7 @@ void setup()
 void loop()
 {
   gateState = digitalRead(gatePin); // Check for button press, read the button state and store -- LOW is unblocked.
+  gate2State = digitalRead(gate2Pin); // Check for button press, read the button state and store -- LOW is unblocked.
   buttonState = digitalRead(buttonPin);
 
   if (mode < 3)  
@@ -220,7 +228,7 @@ void loop()
     }
 
     // check for a high to low transition if true then found a new button press while clock is running - stop the clock and report
-    else if (gateState == LOW && lastgateState == HIGH  &&  refresh == true)
+    else if (gate2State == LOW && lastgateState == HIGH  &&  refresh == true)
     {
       refresh = false;                                    // turn off refresh, all done timing
       digitalWrite(ledPin, LOW);
